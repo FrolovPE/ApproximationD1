@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "window.h"
+#include "newton.h"
 
 #define DEFAULT_A -1
 #define DEFAULT_B 1
@@ -99,7 +100,8 @@ int Window::parse_command_line (int argc, char *argv[])
   if (   sscanf (argv[1], "%lf", &a) != 1
       || sscanf (argv[2], "%lf", &b) != 1
       || b - a < 1.e-6
-      || (argc > 4 && (sscanf (argv[3], "%d", &n) != 1 || sscanf (argv[4], "%d", &k) != 1)) 
+      || (argc > 3 && (sscanf (argv[3], "%d", &n) != 1))
+      || (argc > 4 && (sscanf (argv[4], "%d", &k) != 1))
       || n <= 0
       ||(k < 0 || k > 6)
       )
@@ -221,5 +223,39 @@ void Window::paintEvent (QPaintEvent * /* event */)
   // render function name
   painter.setPen ("blue");
   painter.drawText (0, 20, f_name);
+
+  // printf("IN parintEvent\n");
+  double *x,*y,*coeff,*tmp;
+
+  //alloc memory
+
+  x = new double[n];
+  y = new double[n];
+  coeff = new double[n];
+  tmp = new double[n];
+  
+  make_xy(n,a,b,x,y,f);
+  newton_coeff(n,x,y,coeff,tmp);
+
+
+  printf("\nNewton coeffs k = %d\n",func_id);
+  
+  for(int i = 0; i < n; i++)
+  {
+    printf(" %lf",coeff[i]);
+  }
+
+  double val = newton_in_point(1,n,x,coeff);
+
+  printf("\n Val in point 1 = %lf\n",val);
+
+
+  //delete memory
+
+  delete []x;
+  delete []y;
+  delete []coeff;
+  delete []tmp;
+
 
 }
