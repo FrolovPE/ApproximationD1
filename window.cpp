@@ -49,6 +49,17 @@ double f_6 (double x)
   return 1.0/(25 * x * x + 1.0);
 }
 
+static void make_xy(int n, double a, double b, double *x, double *y, double (*func)(double))
+{
+    double h = (b-a)/n;
+
+    for(int i = 0 ; i < n; i++)
+    {
+        x[i] = a + i*h;
+        y[i] = func(x[i]);
+    }
+}
+
 
 
 Window::Window (QWidget *parent)
@@ -208,7 +219,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
   painter.drawLine (L2G(0, min_y), L2G(0, max_y));
 
   // render function name
-  painter.setPen ("yellow");
+  painter.setPen ("blue");
   painter.drawText (0, 20, f_name);
 
 }
