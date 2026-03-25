@@ -22,8 +22,9 @@ int newton_coeff(int n,double *x, double *y /*array of f(x_i)*/, double *coeff, 
 }
 
 
-double newton_in_point(double t,/*, double a, double b,*/ int n ,double *x, double *coeff)
+double newton_in_point(double t,/*, double a, double b,*/ int n ,double *x, double *coeff,double *tmp)
 {
+    (void)tmp;
     double res = coeff[n-1];
 
     for(int i = n - 2; i >= 0; i--)

@@ -18,11 +18,11 @@ int tridiag(int n, double *lowd, double *maind, double *upd, double *b, double *
     //maind 0,...,n-1
     //lowd 0,..,n-2
 
-    for(int i = 0; i < n -1 ; i++)
+    for(int i = 1; i < n  ; i++)
     {
-        double h = lowd[i]/maind[i];
-        maind[i+1] -= h*upd[i];
-        b[i+1] -= h * b[i];
+        double h = lowd[i]/maind[i-1];
+        maind[i] -= h*upd[i - 1];
+        b[i] -= h * b[i-1];
     }
 
     solution[n-1] = b[n-1]/maind[n-1];
@@ -75,8 +75,8 @@ int spline_coeff(int n,double *x, double *y /*array of f(x_i)*/, double *coeff, 
 
     A = 1 / (x[n-1] - ksi[n-1]);
     B = 1 / (ksi[n] - x[n-1]);
-    maind[n] = A;
-    upd[n-1] = B;
+    maind[n] = B;
+    lowd[n] = A;
     b[n] = y[n-1] * (A + B); 
 
 
@@ -94,13 +94,13 @@ int spline_coeff(int n,double *x, double *y /*array of f(x_i)*/, double *coeff, 
         double b_i = (1 / (x[i-1] - ksi[i-1]) + 1 / (ksi[i] - x[i-1])) * y[i-1] +
                      (1 / (x[i] - ksi[i]) + 1 / (ksi[i+1] - x[i])) * y[i];
 
-        lowd[i-1] = left;
+        lowd[i] = left;
         maind[i] = mid;
         upd[i] = right;
         b[i] = b_i;
     }
 
-    tridiag(n,lowd,maind,upd,b,v);
+    tridiag(n+1,lowd,maind,upd,b,v);
 
     for(int i = 0 ; i < n; i++)
     {
@@ -118,7 +118,7 @@ int spline_coeff(int n,double *x, double *y /*array of f(x_i)*/, double *coeff, 
     return 0;
 }
 
-double spline_in_point(double t,/*, double a, double b,*/ int n ,const double *x, const double *coeff,double *dopvecor)
+double spline_in_point(double t,/*, double a, double b,*/ int n ,double *x,double *coeff,double *dopvecor)
 {
 
     double *ksi = dopvecor;

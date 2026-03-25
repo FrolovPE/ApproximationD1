@@ -10,6 +10,8 @@
 #define DEFAULT_B 1
 #define DEFAULT_N 5
 #define DEFAULT_K 0
+#define DEFAULT_MODE 0
+
 #define L2G(X,Y) (l2g ((X), (Y), min_y, max_y))
 
 static
@@ -71,6 +73,8 @@ Window::Window (QWidget *parent)
   b = DEFAULT_B;
   n = DEFAULT_N;
   k = DEFAULT_K;
+  draw_mode = DEFAULT_MODE;
+  mode_name = "mode I";
 
   func_id = k;
 
@@ -126,6 +130,33 @@ void Window::change_func ()
   set_func();
 }
 
+void Window::change_mode()
+{
+  draw_mode = (draw_mode + 1)%4;
+  set_mode();
+}
+
+void Window::set_mode()
+{
+  switch (draw_mode)
+    {
+      case 0:
+        mode_name = "mode I";
+        break;
+      case 1:
+        mode_name = "mode II";
+        break;
+      case 2:
+        mode_name = "mode III";
+        break;
+      case 3:
+        mode_name = "mode IV";
+        break;
+      
+    }
+    update ();
+}
+
 void Window::set_func ()
 {
  
@@ -170,6 +201,91 @@ QPointF Window::l2g (double x_loc, double y_loc, double y_min, double y_max)
   return QPointF (x_gl, y_gl);
 }
 
+void Window::draw_graph(QPainter &painter, int width,int n,double a, double b, double (*func)(double, int,double* ,double* ,double*),double *x, double *coeff,double *tmp)
+{
+  double x1, x2, y1, y2;
+  double max_y, min_y;
+  double delta_y;
+
+  double hx = (b - a)/width;
+
+  max_y = min_y = 0;
+
+
+  for (int i = 0; i <= width; i++)
+    {
+      x1 = a + i * hx;
+      y1 = func(x1,n,x,coeff,tmp);
+      if (y1 < min_y)
+        min_y = y1;
+      if (y1 > max_y)
+        max_y = y1;
+    }
+
+  delta_y = 0.01 * (max_y - min_y);
+  min_y -= delta_y;
+  max_y += delta_y;
+
+  printf("\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(min_y,max_y));
+
+  x1 = a;
+  y1 = func(x1,n,x,coeff,tmp);
+
+  for (int i = 1; i <= width; i++)
+    {
+      x2 = a + i * hx;
+      y2 = func(x2,n,x,coeff,tmp);
+      // local coords are converted to draw coords
+      painter.drawLine (L2G(x1, y1), L2G(x2, y2));
+
+      x1 = x2, y1 = y2;
+    }
+}
+
+void Window::draw_error(QPainter &painter, int width,int n,double a, double b, double (*func)(double,int, double*, double*, double*),double (*f)(double),double *x, double *coeff,double *tmp)
+{
+
+  double x1, x2, y1, y2;
+  double max_y, min_y;
+  double delta_y;
+
+  double hx = (b - a)/width;
+
+  max_y = min_y = 0;
+
+
+  for (int i = 0; i <= width; i++)
+    {
+      x1 = a + i * hx;
+      y1 = fabs(func(x1,n,x,coeff,tmp)-f(x1));
+      if (y1 < min_y)
+        min_y = y1;
+      if (y1 > max_y)
+        max_y = y1;
+    }
+
+  delta_y = 0.01 * (max_y - min_y);
+  min_y -= delta_y;
+  max_y += delta_y;
+
+  
+
+  x1 = a;
+  y1 = fabs(func(x1,n,x,coeff,tmp)-f(x1));
+
+  for (int i = 1; i <= width; i++)
+    {
+      x2 = a + i * hx;
+      y2 = fabs(func(x2,n,x,coeff,tmp)-f(x2));
+      // local coords are converted to draw coords
+      painter.drawLine (L2G(x1, y1), L2G(x2, y2));
+
+      x1 = x2, y1 = y2;
+    }
+
+}
+
+
 /// render graph
 void Window::paintEvent (QPaintEvent * /* event */)
 {  
@@ -204,8 +320,10 @@ void Window::paintEvent (QPaintEvent * /* event */)
   min_y -= delta_y;
   max_y += delta_y;
 
+  
   // draw approximated line for graph
-  x1 = a;
+  if(draw_mode != 3)
+  {x1 = a;
   y1 = f (x1);
   for (i = 1; i <= W; i++)
     {
@@ -216,14 +334,18 @@ void Window::paintEvent (QPaintEvent * /* event */)
 
       x1 = x2, y1 = y2;
     }
+  }
   // draw axis
   painter.setPen (pen_red);
   painter.drawLine (L2G(a, 0), L2G(b, 0));
   painter.drawLine (L2G(0, min_y), L2G(0, max_y));
 
+  
+
   // render function name
   painter.setPen ("blue");
   painter.drawText (0, 20, f_name);
+  painter.drawText (0, 40, mode_name);
 
   // printf("IN parintEvent\n");
   double *x,*y,*coeff,*tmp;
@@ -245,31 +367,43 @@ void Window::paintEvent (QPaintEvent * /* event */)
   make_xy(n,a,b,x,y,f);
 
   //Newton
-  newton_coeff(n,x,y,newton_cff,newton_tmp);
-
-
-  // printf("\nNewton coeffs k = %d\n",func_id);
   
-  // for(int i = 0; i < n; i++)
-  // {
-  //   printf(" %lf",coeff[i]);
-  // }
-
-  double point = 2;
-
-  double nval = newton_in_point(point,n,x,newton_cff);
-
-  printf("\n nVal in point 1 = %lf\n",nval);
+  if(n <= 50)
+    newton_coeff(n,x,y,newton_cff,newton_tmp);
+  
 
   //Spline
 
   spline_coeff(n,x,y,spline_cff,spline_tmp);
 
-  double sval = spline_in_point(point,n,x,spline_cff,spline_tmp);
+  // double sval = spline_in_point(point,n,x,spline_cff,spline_tmp);
 
-  printf("\n sVal in point 1 = %lf\n",sval);
+  // printf("\n sVal in point 1 = %lf\n",sval);
 
 
+  if(draw_mode == 0 && n <= 50) 
+    draw_graph(painter,W,n,a,b,&newton_in_point,x,newton_cff,newton_tmp);
+  else if(draw_mode == 1)
+    {
+      painter.setPen ("orange");
+      draw_graph(painter,W,n,a,b,&spline_in_point,x,spline_cff,spline_tmp);
+    }
+  else if(draw_mode == 2)
+    {
+      if(n <= 50) 
+        draw_graph(painter,W,n,a,b,&newton_in_point,x,newton_cff,newton_tmp);
+
+      painter.setPen ("orange");
+      draw_graph(painter,W,n,a,b,&spline_in_point,x,spline_cff,spline_tmp);
+    }
+  else if(draw_mode == 3)
+    {  
+      if(n <= 50) 
+        draw_error(painter,W,n,a,b,&newton_in_point,f,x,spline_cff,spline_tmp);
+
+      painter.setPen ("orange");
+      draw_error(painter,W,n,a,b,&spline_in_point,f,x,spline_cff,spline_tmp);
+    }
 
   //delete memory
 
