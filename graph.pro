@@ -4,12 +4,14 @@ QT += widgets
 TARGET        = a.out
 HEADERS       = window.h \
 		newton.h \
-		spline.h
+		spline.h \
+		draw.h
 
 SOURCES       = main.cpp \
                 window.cpp \
 		newton.cpp \
-		spline.cpp
+		spline.cpp \
+		draw.cpp
 
 PROJECT_NAME  = graph.pro
 
