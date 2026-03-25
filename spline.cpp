@@ -1,13 +1,15 @@
 #include "spline.h"
 #include <iostream>
 
-int ksi_append(int n, double *x,double *ksi)
+int ksi_append(int n, const double *x,double *ksi)
 {
     for(int i = 1; i < n; i++)
         ksi[i] = (x[i] + x[i-1])/2;
         
     ksi[0] = x[0] - (x[1] - x[0])/2;
     ksi[n] = x[n-1] + (x[n-1] - x[n-2])/2;
+
+    return 0;
 }
 
 int tridiag(int n, double *lowd, double *maind, double *upd, double *b, double *solution)
@@ -23,11 +25,11 @@ int tridiag(int n, double *lowd, double *maind, double *upd, double *b, double *
         b[i+1] -= h * b[i];
     }
 
-    solution[n-1] = b[n-1]/d[n-1];
+    solution[n-1] = b[n-1]/maind[n-1];
 
     for(int i = n - 2; i >= 0;i--)
     {
-        solution[i] = (b[i] - solution[i+1]*upd[i])/d[i];
+        solution[i] = (b[i] - solution[i+1]*upd[i])/maind[i];
     }
 
     return 0;
@@ -47,7 +49,8 @@ int spline_coeff(int n,double *x, double *y /*array of f(x_i)*/, double *coeff, 
     double *lowd = ksi + n + 1;
     double *maind = lowd + n + 1;
     double *upd = maind + n + 1;
-    double *v = upd + n + 1;
+    double *b = upd + n + 1;
+    double *v = b + n + 1;
     //выделил для всех n+1 для удобства 
 
     ksi_append(n,x,ksi);

@@ -233,7 +233,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
   x = new double[n];
   y = new double[n];
   coeff = new double[4*n];
-  tmp = new double[6(n + 1)];
+  tmp = new double[7*(n + 1)];
 
   double *newton_tmp = tmp;
   double *newton_cff = coeff;
