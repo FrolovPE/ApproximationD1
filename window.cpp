@@ -4,6 +4,7 @@
 
 #include "window.h"
 #include "newton.h"
+#include "spline.h"
 
 #define DEFAULT_A -1
 #define DEFAULT_B 1
@@ -231,23 +232,43 @@ void Window::paintEvent (QPaintEvent * /* event */)
 
   x = new double[n];
   y = new double[n];
-  coeff = new double[n];
-  tmp = new double[n];
+  coeff = new double[4*n];
+  tmp = new double[6(n + 1)];
+
+  double *newton_tmp = tmp;
+  double *newton_cff = coeff;
+
+  double *spline_tmp = newton_tmp + n;
+  double *spline_cff = newton_cff + n;
+  
   
   make_xy(n,a,b,x,y,f);
-  newton_coeff(n,x,y,coeff,tmp);
+
+  //Newton
+  newton_coeff(n,x,y,newton_cff,newton_tmp);
 
 
-  printf("\nNewton coeffs k = %d\n",func_id);
+  // printf("\nNewton coeffs k = %d\n",func_id);
   
-  for(int i = 0; i < n; i++)
-  {
-    printf(" %lf",coeff[i]);
-  }
+  // for(int i = 0; i < n; i++)
+  // {
+  //   printf(" %lf",coeff[i]);
+  // }
 
-  double val = newton_in_point(1,n,x,coeff);
+  double point = 1;
 
-  printf("\n Val in point 1 = %lf\n",val);
+  double nval = newton_in_point(point,n,x,newton_cff);
+
+  printf("\n nVal in point 1 = %lf\n",nval);
+
+  //Spline
+
+  spline_coeff(n,x,y,spline_cff,spline_tmp);
+
+  double sval = spline_in_point(point,n,x,spline_cff,spline_tmp);
+
+  printf("\n sVal in point 1 = %lf\n",sval);
+
 
 
   //delete memory
