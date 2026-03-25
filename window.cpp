@@ -255,7 +255,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
   //   printf(" %lf",coeff[i]);
   // }
 
-  double point = 1;
+  double point = 2;
 
   double nval = newton_in_point(point,n,x,newton_cff);
 
