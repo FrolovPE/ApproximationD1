@@ -123,7 +123,7 @@ double spline_in_point(double t,/*, double a, double b,*/ int n ,double *x,doubl
 
     double *ksi = dopvecor;
 
-    ksi_append(n,x,ksi);
+    // ksi_append(n,x,ksi);
 
     int i = find_local_func(t,n,ksi);
 

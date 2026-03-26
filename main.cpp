@@ -30,6 +30,18 @@ int main (int argc, char *argv[])
   action = tool_bar->addAction ("&Change mode", graph_area, SLOT (change_mode ()));
   action->setShortcut (QString ("1"));
 
+  action = tool_bar->addAction ("&Change mode", graph_area, SLOT (rescale_mult ()));
+  action->setShortcut (QString ("2"));
+
+  action = tool_bar->addAction ("&Change mode", graph_area, SLOT (rescale_dev ()));
+  action->setShortcut (QString ("3"));
+
+  action = tool_bar->addAction ("&Change mode", graph_area, SLOT (resize_mult ()));
+  action->setShortcut (QString ("4"));
+
+  action = tool_bar->addAction ("&Change mode", graph_area, SLOT (resize_dev ()));
+  action->setShortcut (QString ("5"));
+
   action = tool_bar->addAction ("E&xit", window, SLOT (close ()));
   action->setShortcut (QString ("Ctrl+X"));
 

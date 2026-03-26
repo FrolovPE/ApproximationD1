@@ -17,6 +17,7 @@ private:
   double (*f) (double);
   int draw_mode;
   const char *mode_name;
+  int scale;
 
 public:
   Window (QWidget *parent);
@@ -28,11 +29,16 @@ public:
   QPointF l2g (double x_loc, double y_loc, double y_min, double y_max);
   void draw_graph(QPainter &painter, int width,int n,double a, double b, double (*func)(double,int, double*, double*, double*),double *x, double *coeff,double *tmp);
   void draw_error(QPainter &painter, int width,int n,double a, double b, double (*func)(double,int, double*, double*, double*),double (*f)(double),double *x, double *coeff,double *tmp);
+  void change_ab ();
 public slots:
   void change_func ();
   void set_func ();
   void change_mode ();
   void set_mode();
+  void resize_mult ();
+  void resize_dev ();
+  void rescale_mult ();
+  void rescale_dev ();
   //void resize ();
 
 protected:

@@ -11,6 +11,7 @@
 #define DEFAULT_N 5
 #define DEFAULT_K 0
 #define DEFAULT_MODE 0
+#define DEFAULT_SCALE 0
 
 #define L2G(X,Y) (l2g ((X), (Y), min_y, max_y))
 
@@ -75,6 +76,7 @@ Window::Window (QWidget *parent)
   k = DEFAULT_K;
   draw_mode = DEFAULT_MODE;
   mode_name = "mode I";
+  scale = DEFAULT_SCALE;
 
   func_id = k;
 
@@ -380,6 +382,8 @@ void Window::paintEvent (QPaintEvent * /* event */)
 
   // printf("\n sVal in point 1 = %lf\n",sval);
 
+  ksi_append(n,x,spline_tmp);
+
 
   if(draw_mode == 0 && n <= 50) 
     draw_graph(painter,W,n,a,b,&newton_in_point,x,newton_cff,newton_tmp);
@@ -413,4 +417,47 @@ void Window::paintEvent (QPaintEvent * /* event */)
   delete []tmp;
 
 
+}
+
+
+void Window::resize_mult ()
+{
+  n *= 2;
+  update();
+}
+
+
+void Window::resize_dev ()
+{
+  n /= 2;
+  n = (n == 0 ? 1:n);
+  update();
+}
+
+
+void Window::rescale_mult ()
+{
+  scale = 0;
+  scale++;
+  change_ab ();
+  update ();
+}
+
+
+void Window::rescale_dev ()
+{
+  scale = 0;
+  scale--;
+  change_ab ();
+  update ();
+}
+
+void Window::change_ab ()
+{
+  double mid = (a + b) / 2;
+
+  double h = (b - a) * std::pow(2,scale);
+
+  a = mid - h / 2;
+  b = mid + h / 2;
 }
