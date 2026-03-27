@@ -18,6 +18,7 @@ private:
   int draw_mode;
   const char *mode_name;
   int scale;
+  int p;
 
 public:
   Window (QWidget *parent);
@@ -30,6 +31,9 @@ public:
   void draw_graph(QPainter &painter, int width,int n,double a, double b, double (*func)(double,int, double*, double*, double*),double *x, double *coeff,double *tmp);
   void draw_error(QPainter &painter, int width,int n,double a, double b, double (*func)(double,int, double*, double*, double*),double (*f)(double),double *x, double *coeff,double *tmp);
   void change_ab ();
+  double max_f();
+  void do_p (double *y,double maxf);
+
 public slots:
   void change_func ();
   void set_func ();
@@ -39,6 +43,9 @@ public slots:
   void resize_dev ();
   void rescale_mult ();
   void rescale_dev ();
+  void add_p ();
+  void sub_p ();
+  
   //void resize ();
 
 protected:

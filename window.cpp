@@ -12,6 +12,7 @@
 #define DEFAULT_K 0
 #define DEFAULT_MODE 0
 #define DEFAULT_SCALE 0
+#define DEFAULT_P 0
 
 #define L2G(X,Y) (l2g ((X), (Y), min_y, max_y))
 
@@ -74,9 +75,11 @@ Window::Window (QWidget *parent)
   b = DEFAULT_B;
   n = DEFAULT_N;
   k = DEFAULT_K;
+
   draw_mode = DEFAULT_MODE;
   mode_name = "mode I";
   scale = DEFAULT_SCALE;
+  p = DEFAULT_P;
 
   func_id = k;
 
@@ -143,16 +146,16 @@ void Window::set_mode()
   switch (draw_mode)
     {
       case 0:
-        mode_name = "mode I";
+        mode_name = "Mode I";
         break;
       case 1:
-        mode_name = "mode II";
+        mode_name = "Mode II";
         break;
       case 2:
-        mode_name = "mode III";
+        mode_name = "Mode III";
         break;
       case 3:
-        mode_name = "mode IV";
+        mode_name = "Mode IV";
         break;
       
     }
@@ -304,6 +307,21 @@ void Window::paintEvent (QPaintEvent * /* event */)
   // Step
   double hx = (b - a) / W;
 
+  double maxf = max_f();
+
+  double *x,*y,*coeff,*tmp;
+
+  x = new double[n];
+  y = new double[n];
+  coeff = new double[4*n];
+  tmp = new double[7*(n + 1)];
+
+  make_xy(n,a,b,x,y,f);
+
+  do_p(y,maxf);
+
+  
+
   painter.setPen (pen_green);
 
   // calculate min and max for current function
@@ -343,21 +361,18 @@ void Window::paintEvent (QPaintEvent * /* event */)
   painter.drawLine (L2G(0, min_y), L2G(0, max_y));
 
   
-
+  char txt[50];
+  snprintf(txt,sizeof(txt),"%s     %s       p = %d",f_name,mode_name,p);
   // render function name
   painter.setPen ("blue");
-  painter.drawText (0, 20, f_name);
-  painter.drawText (0, 40, mode_name);
+  painter.drawText (0, 20, txt);
 
   // printf("IN parintEvent\n");
-  double *x,*y,*coeff,*tmp;
+  
 
   //alloc memory
 
-  x = new double[n];
-  y = new double[n];
-  coeff = new double[4*n];
-  tmp = new double[7*(n + 1)];
+ 
 
   double *newton_tmp = tmp;
   double *newton_cff = coeff;
@@ -366,7 +381,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
   double *spline_cff = newton_cff + n;
   
   
-  make_xy(n,a,b,x,y,f);
+  
 
   //Newton
   
@@ -437,8 +452,8 @@ void Window::resize_dev ()
 
 void Window::rescale_mult ()
 {
-  scale = 0;
-  scale++;
+  scale = 1;
+  // scale++;
   change_ab ();
   update ();
 }
@@ -446,8 +461,8 @@ void Window::rescale_mult ()
 
 void Window::rescale_dev ()
 {
-  scale = 0;
-  scale--;
+  scale = -1;
+  // scale--;
   change_ab ();
   update ();
 }
@@ -460,4 +475,44 @@ void Window::change_ab ()
 
   a = mid - h / 2;
   b = mid + h / 2;
+}
+
+double Window::max_f()
+{
+  double x,maxf{},fabsf;
+  int size = 5000;
+
+  double h = (b - a) / size;
+
+  for(int i = 0; i < size; i++)
+  {
+    x = a + i * h;
+    fabsf = fabs(f(x));
+    if(maxf < fabsf)
+      maxf = fabsf;
+
+  }
+
+  return maxf;
+}
+
+void Window::do_p (double *y,double maxf)
+{
+  int mid = n / 2;
+
+  y[mid] += p * maxf * 0.1;
+}
+
+
+void Window::add_p ()
+{
+  // p = 0;
+  p++;
+  update ();
+}
+void Window::sub_p ()
+{
+  // p = 0;
+  p--;
+  update ();
 }
