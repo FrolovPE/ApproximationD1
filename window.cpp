@@ -231,7 +231,7 @@ void Window::draw_graph(QPainter &painter, int width,int n,double a, double b, d
   min_y -= delta_y;
   max_y += delta_y;
 
-  printf("\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(min_y,max_y));
+  printf("\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(fabs(min_y),fabs(max_y)));
 
   x1 = a;
   y1 = func(x1,n,x,coeff,tmp);
@@ -366,6 +366,8 @@ void Window::paintEvent (QPaintEvent * /* event */)
   // render function name
   painter.setPen ("blue");
   painter.drawText (0, 20, txt);
+  snprintf(txt,sizeof(txt),"n = %d",n);
+  painter.drawText (0, 40, txt);
 
   // printf("IN parintEvent\n");
   
@@ -418,7 +420,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
   else if(draw_mode == 3)
     {  
       if(n <= 50) 
-        draw_error(painter,W,n,a,b,&newton_in_point,f,x,spline_cff,spline_tmp);
+        draw_error(painter,W,n,a,b,&newton_in_point,f,x,newton_cff,newton_cff);
 
       painter.setPen ("orange");
       draw_error(painter,W,n,a,b,&spline_in_point,f,x,spline_cff,spline_tmp);
@@ -445,7 +447,7 @@ void Window::resize_mult ()
 void Window::resize_dev ()
 {
   n /= 2;
-  n = (n == 0 ? 1:n);
+  n = (n <= 1 ? 2:n);
   update();
 }
 
