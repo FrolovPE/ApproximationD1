@@ -316,6 +316,7 @@ void Window::draw_graph(QPainter &painter, int width,int n,double a, double b,do
   // min_y -= delta_y;
   // max_y += delta_y;
 
+
   printf("\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(fabs(min_y),fabs(max_y))-delta_y);
 
   x1 = a;
@@ -332,43 +333,46 @@ void Window::draw_graph(QPainter &painter, int width,int n,double a, double b,do
     }
 }
 
-void Window::draw_error(QPainter &painter, int width,int n,double a, double b, double min_y,double max_y,
+void Window::draw_error(QPainter &painter, int width,int n,double a, double b, double &min_y,double &max_y,
   double (*func)(double,int, double*, double*, double*),double (*f)(double),
   double *x, double *coeff,double *tmp)
 {
 
   double x1, x2, y1, y2;
   // double max_y, min_y;
-  // double delta_y;
+   double delta_y;
 
   double hx = (b - a)/width;
 
-  // max_y = min_y = 0;
+   max_y = min_y = 0;
 
 
-  // for (int i = 0; i <= width; i++)
-  //   {
-  //     x1 = a + i * hx;
-  //     y1 = fabs(func(x1,n,x,coeff,tmp)-f(x1));
-  //     if (y1 < min_y)
-  //       min_y = y1;
-  //     if (y1 > max_y)
-  //       max_y = y1;
-  //   }
+   for (int i = 0; i <= width; i++)
+     {
+       x1 = a + i * hx;
+       y1 = f(x1) -func(x1,n,x,coeff,tmp);
+       if (y1 < min_y)
+         min_y = y1;
+       if (y1 > max_y)
+         max_y = y1;
+     }
 
-  // delta_y = 0.01 * (max_y - min_y);
-  // min_y -= delta_y;
-  // max_y += delta_y;
+   delta_y = 0.01 * std::max(max_y - min_y,1e-15);
+   min_y -= delta_y;
+   max_y += delta_y;
+
+
+
 
   
 
   x1 = a;
-  y1 = fabs(func(x1,n,x,coeff,tmp)-f(x1));
+  y1 = f(x1) -func(x1,n,x,coeff,tmp);
 
   for (int i = 1; i <= width; i++)
     {
       x2 = a + i * hx;
-      y2 = fabs(func(x2,n,x,coeff,tmp)-f(x2));
+      y2 = f(x2) -func(x2,n,x,coeff,tmp);
       // local coords are converted to draw coords
       painter.drawLine (L2G(x1, y1), L2G(x2, y2));
 
@@ -418,6 +422,8 @@ void Window::paintEvent (QPaintEvent * /* event */)
   min_y -= delta_y;
   max_y += delta_y;
 
+  char txt[50];
+
   
   // draw approximated line for graph
   if(draw_mode != 3)
@@ -432,6 +438,9 @@ void Window::paintEvent (QPaintEvent * /* event */)
 
       x1 = x2, y1 = y2;
     }
+      painter.setPen (pen_blue);
+      snprintf(txt,sizeof(txt),"\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(fabs(min_y ),fabs(max_y)) - delta_y);
+      painter.drawText (0, 100, txt);
   }
   // draw axis
   painter.setPen (pen_red);
@@ -439,10 +448,10 @@ void Window::paintEvent (QPaintEvent * /* event */)
   painter.drawLine (L2G(0, min_y), L2G(0, max_y));
 
   
-  char txt[50];
+
   snprintf(txt,sizeof(txt),"%s     %s       ",f_name,mode_name);
   // render function name
-  painter.setPen (pen_blue);
+  painter.setPen (pen_red);
   painter.drawText (0, 20, txt);
   snprintf(txt,sizeof(txt),"p = %d",p);
   painter.drawText (50, 60, txt);
@@ -452,8 +461,8 @@ void Window::paintEvent (QPaintEvent * /* event */)
   painter.drawText (0, 60, txt);
   snprintf(txt,sizeof(txt),"a = %lf    b = %lf",a,b);
   painter.drawText (0, 80, txt);
-  snprintf(txt,sizeof(txt),"\nmax{|Fmin|,|Fmax|} = %lf\n",std::max(fabs(min_y ),fabs(max_y)) - delta_y);
-  painter.drawText (0, 100, txt);
+  painter.setPen (pen_blue);
+
   
   // printf("IN parintEvent\n");
   
@@ -491,11 +500,35 @@ void Window::paintEvent (QPaintEvent * /* event */)
     }
   else if(draw_mode == 3)
     {  
+
+      double maxx{};
+      double maxx_y{},minn_y{};
       if(n <= 50) 
-        draw_error(painter,W,n,a,b,min_y,max_y,&newton_in_point,f,x,newton_cff,newton_tmp);
+        draw_error(painter,W,n,a,b,maxx_y,minn_y,&newton_in_point,f,x,newton_cff,newton_tmp);
+
+      if(maxx_y < EPS)
+           maxx_y = EPS;
+      if(minn_y < EPS)
+           minn_y = EPS;
+
+      maxx = std::max(fabs(minn_y ),std::max(maxx,fabs(maxx_y)));
+
+
 
       painter.setPen (pen_orange);
-      draw_error(painter,W,n,a,b,min_y,max_y,&spline_in_point,f,x,spline_cff,spline_tmp);
+      draw_error(painter,W,n,a,b,maxx_y,minn_y,&spline_in_point,f,x,spline_cff,spline_tmp);
+
+      if(maxx_y < EPS)
+           maxx_y = EPS;
+      if(minn_y < EPS)
+           minn_y = EPS;
+
+      maxx = std::max(fabs(minn_y ),std::max(maxx,fabs(maxx_y)));
+
+      painter.setPen (pen_red);
+      snprintf(txt,sizeof(txt),"\nmax{|Fmin|,|Fmax|} = %10.3e\n",maxx);
+      painter.drawText (0, 100, txt);
+      printf("\nmax{|Fmin|,|Fmax|} = %10.3e\n",maxx);
     }
 
   //delete memory

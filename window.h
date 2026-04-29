@@ -3,6 +3,8 @@
 
 #include <QtWidgets/QtWidgets>
 
+#define EPS 1e-15
+
 class Window : public QWidget
 {
   Q_OBJECT
@@ -45,7 +47,7 @@ public:
   int parse_command_line (int argc, char *argv[]);
   QPointF l2g (double x_loc, double y_loc, double y_min, double y_max);
   void draw_graph(QPainter &painter, int width,int n,double a, double b,double min_y,double max_y,double delta_y, double (*func)(double,int, double*, double*, double*),double *x, double *coeff,double *tmp);
-  void draw_error(QPainter &painter, int width,int n,double a, double b, double min_y,double max_y,double (*func)(double,int, double*, double*, double*),double (*f)(double),double *x, double *coeff,double *tmp);
+  void draw_error(QPainter &painter, int width,int n,double a, double b, double &min_y,double &max_y,double (*func)(double,int, double*, double*, double*),double (*f)(double),double *x, double *coeff,double *tmp);
   void change_ab ();
   double max_f();
   void do_p (double *y,double maxf);
